@@ -63,8 +63,8 @@ $soap_lite->mock(call => sub {
         is $request[REPORT_NORTHING]->value, NORTHING;
         my $photo_desc = "\n\n[ This report contains a photo, see: http://example.org/photo/1.jpeg ]";
         is $request[REPORT_DESC]->value, "This is the details$photo_desc";
-        is $fields[0][FIELDS_FIELDLINE]->value, 18;
-        is $fields[0][FIELDS_VALUETYPE]->value, 5;
+        is $fields[0][FIELDS_FIELDLINE]->value, 15;
+        is $fields[0][FIELDS_VALUETYPE]->value, 8;
         is $fields[0][FIELDS_VALUE]->value, "http://example.org/photo/1.jpeg";
         is $request[REPORT_PRIORITY]->value, ($request[REPORT_REQUEST_TYPE]->value eq "Bridges" ? 'Priority1' : 'Priority2');
         if ( $request[REPORT_REQUEST_TYPE]->value eq "Potholes" ) {
