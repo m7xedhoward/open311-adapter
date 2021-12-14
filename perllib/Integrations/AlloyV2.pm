@@ -38,10 +38,9 @@ sub api_call {
     $method = $body ? 'POST' : 'GET' unless $method;
     my $uri = URI->new( $self->config->{api_url} . $call );
 
-    $args{params}->{token} = $self->config->{api_key};
-
     $uri->query_form(%{ $args{params} });
     my $request = HTTP::Request->new($method, $uri);
+    $request->header(Authorization => 'Bearer ' . $self->config->{api_key});
     if ($args{is_file}) {
         $request = HTTP::Request::Common::POST(
             $uri,
