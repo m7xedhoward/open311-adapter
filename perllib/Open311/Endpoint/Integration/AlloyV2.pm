@@ -393,15 +393,16 @@ sub post_service_request_update {
     my ($self, $args) = @_;
 
     my $resource_id = $args->{service_request_id};
-    my $inspection = $self->alloy->api_call(call => "item/$resource_id")->{item};
+    my $item = $self->alloy->api_call(call => "item/$resource_id")->{item};
 
-    my $attributes = $self->alloy->attributes_to_hash($inspection);
-    my $updates = $attributes->{$self->config->{inspection_attribute_mapping}->{updates}} || '';
+    my $attributes = $self->alloy->attributes_to_hash($item);
+    my $attribute_code = $self->config->{inspection_attribute_mapping}->{updates} || $self->config->{defect_attribute_mapping}->{updates};
+    my $updates = $attributes->{$attribute_code} || '';
 
     $updates = $self->_generate_update($args, $updates);
 
     my $updated_attributes = [{
-        attributeCode => $self->config->{inspection_attribute_mapping}->{updates},
+        attributeCode => $attribute_code,
         value => $updates
     }];
 
@@ -451,6 +452,7 @@ sub _get_inspection_updates {
 
     my $updates = $self->fetch_updated_resources($self->config->{rfs_design}, $args->{start_date}, $args->{end_date});
     my $mapping = $self->config->{inspection_attribute_mapping};
+    return () unless $mapping;
     for my $update (@$updates) {
         next unless $self->_accept_updated_resource($update);
 
@@ -582,7 +584,7 @@ sub _get_defect_updates_resource {
         $fms_id = undef if $linked_defect;
 
         # we don't care about linked defects until they have been scheduled
-        my $status = $self->defect_status($attributes->{$mapping->{status}});
+        my $status = $self->defect_status($attributes->{$mapping->{status}}, $attributes);
         next if $linked_defect && ( $status eq 'open' || $status eq 'investigating' );
 
         my @version_ids = $self->get_versions_of_resource($update->{itemId});
@@ -599,7 +601,7 @@ sub _get_defect_updates_resource {
 
             $resource = $resource->{item};
             my $attributes = $self->alloy->attributes_to_hash($resource);
-            my $status = $self->defect_status($attributes->{$mapping->{status}});
+            my $status = $self->defect_status($attributes->{$mapping->{status}}, $attributes);
 
             my %args = (
                 status => $status,
@@ -674,7 +676,7 @@ sub _get_service_requests_resource {
 
         my $attributes = $self->alloy->attributes_to_hash($request);
         $args{description} = $self->get_request_description($attributes->{$mapping->{description}}, $request);
-        $args{status} = $self->defect_status($attributes->{$mapping->{status}}->[0]);
+        $args{status} = $self->defect_status($attributes->{$mapping->{status}}->[0], $attributes);
 
         #XXX check this no longer required
         next if grep { $_ =~ /_FIXMYSTREET_ID$/ && $attributes->{$_} } keys %{ $attributes };

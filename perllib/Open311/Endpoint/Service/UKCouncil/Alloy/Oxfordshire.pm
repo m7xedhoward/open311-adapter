@@ -10,13 +10,6 @@ sub _build_attributes {
     my @attributes = (
         @{ $self->SUPER::_build_attributes() },
         Open311::Endpoint::Service::Attribute->new(
-            code => "closest_address",
-            description => "Closest address",
-            datatype => "string",
-            required => 1,
-            automated => 'server_set',
-        ),
-        Open311::Endpoint::Service::Attribute->new(
             code => "usrn",
             description => "USRN",
             datatype => "string",
